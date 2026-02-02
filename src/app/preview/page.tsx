@@ -19,6 +19,45 @@ const PREVIEW_SCRIPT = `
     root.style.display = 'block';
   }
 
+  function tryRender(code) {
+    var React = window.React;
+    var ReactDOM = window.ReactDOM;
+    var Babel = window.Babel;
+    if (!React || !ReactDOM || !Babel) return false;
+    try {
+      errEl.textContent = '';
+      errEl.style.display = 'none';
+      root.style.display = 'block';
+      root.innerHTML = '';
+      var normalized = code
+        .replace(/<br\\s*>/gi, '<br />')
+        .replace(/<hr\\s*>/gi, '<hr />');
+      var transformed = Babel.transform(normalized, { presets: ['react'] }).code;
+      transformed = transformed.replace(/^import\\s+.*?;?\\s*$/gm, '');
+      transformed = transformed.replace(/export\\s+default\\s+/g, 'window.__previewComponent = ');
+      var fnMatch = code.match(/function\\s+(\\w+)\\s*\\(/);
+      (function(React, ReactDOM, tr, match) {
+        eval(tr);
+        if (!window.__previewComponent && match) {
+          try { window.__previewComponent = eval(match[1]); } catch (e) {}
+        }
+      })(React, ReactDOM, transformed, fnMatch);
+      var Component = window.__previewComponent;
+      if (typeof Component !== 'function') {
+        showError('Generated code did not export a component.');
+        return true;
+      }
+      var container = document.createElement('div');
+      container.style.padding = '1rem';
+      root.appendChild(container);
+      ReactDOM.createRoot(container).render(React.createElement(Component));
+      return true;
+    } catch (e) {
+      showError('Preview error: ' + (e && e.message ? e.message : String(e)));
+      return true;
+    }
+  }
+
   window.addEventListener('message', function(event) {
     if (event.data && event.data.type === 'PREVIEW_CODE') {
       var code = event.data.code;
@@ -26,52 +65,22 @@ const PREVIEW_SCRIPT = `
         showError('No code received.');
         return;
       }
-      try {
-        errEl.textContent = '';
-        errEl.style.display = 'none';
-        root.style.display = 'block';
-        root.innerHTML = '';
-
-        var React = window.React;
-        var ReactDOM = window.ReactDOM;
-        var Babel = window.Babel;
-        if (!React || !ReactDOM || !Babel) {
-          showError('Libraries not loaded.');
-          return;
-        }
-
-        var normalized = code
-          .replace(/<br\\s*>/gi, '<br />')
-          .replace(/<hr\\s*>/gi, '<hr />');
-        var transformed = Babel.transform(normalized, { presets: ['react'] }).code;
-        transformed = transformed.replace(/^import\\s+.*?;?\\s*$/gm, '');
-        transformed = transformed.replace(/export\\s+default\\s+/g, 'window.__previewComponent = ');
-        var fnMatch = code.match(/function\\s+(\\w+)\\s*\\(/);
-        (function(React, ReactDOM, tr, match) {
-          eval(tr);
-          if (!window.__previewComponent && match) {
-            try { window.__previewComponent = eval(match[1]); } catch (e) {}
-          }
-        })(React, ReactDOM, transformed, fnMatch);
-
-        var Component = window.__previewComponent;
-        if (typeof Component !== 'function') {
-          showError('Generated code did not export a component.');
-          return;
-        }
-
-        var container = document.createElement('div');
-        container.style.padding = '1rem';
-        root.appendChild(container);
-        ReactDOM.createRoot(container).render(React.createElement(Component));
-      } catch (e) {
-        showError('Preview error: ' + (e && e.message ? e.message : String(e)));
-      }
+      if (tryRender(code)) return;
+      setTimeout(function() {
+        if (tryRender(code)) return;
+        showError('Libraries not loaded. Try refreshing the page.');
+      }, 600);
     }
   });
-  if (window.parent !== window) {
-    window.parent.postMessage({ type: 'PREVIEW_READY' }, '*');
+
+  function sendReady() {
+    if (window.React && window.ReactDOM && window.Babel && window.parent !== window) {
+      window.parent.postMessage({ type: 'PREVIEW_READY' }, '*');
+    } else {
+      setTimeout(sendReady, 50);
+    }
   }
+  setTimeout(sendReady, 0);
 })();
 `;
 

@@ -15,8 +15,19 @@ import { openInCodeSandbox, openInStackBlitz } from "@/lib/deploy";
 import type { Section } from "@/types";
 import type { SavedComponent } from "@/types";
 
+function rewriteImageUrlsForPreview(code: string, baseUrl: string): string {
+  if (!baseUrl.trim()) return code;
+  try {
+    const origin = new URL(baseUrl).origin;
+    return code.replace(/src="\/([^"]*)"/g, `src="${origin}/$1"`);
+  } catch {
+    return code;
+  }
+}
+
 export default function Home() {
   const [scrapedHtml, setScrapedHtml] = useState<string | null>(null);
+  const [scrapedUrl, setScrapedUrl] = useState<string | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [selectedSection, setSelectedSection] = useState<Section | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -54,6 +65,7 @@ export default function Home() {
       throw new Error(data.error ?? "Scrape failed");
     }
     setScrapeFailedUrl(null);
+    setScrapedUrl(url);
     setScrapedHtml(data.html);
     const sectionsRes = await fetch("/api/sections", {
       method: "POST",
@@ -249,10 +261,15 @@ export default function Home() {
               {showComparison && selectedSection && code ? (
                 <SectionComparison
                   originalHtml={selectedSection.html}
-                  generatedPreview={<LivePreview code={code} className="min-h-[300px]" />}
+                  generatedPreview={
+                    <LivePreview
+                      code={rewriteImageUrlsForPreview(code, scrapedUrl ?? "")}
+                      className="min-h-[300px]"
+                    />
+                  }
                 />
               ) : (
-                <LivePreview code={code} />
+                <LivePreview code={rewriteImageUrlsForPreview(code, scrapedUrl ?? "")} />
               )}
             </div>
           </div>
