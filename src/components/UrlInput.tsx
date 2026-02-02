@@ -39,7 +39,7 @@ export function UrlInput({ onScrape, onScrapeError, disabled }: UrlInputProps) {
         setLoading(false);
       }
     },
-    [url, onScrape]
+    [url, onScrape, onScrapeError]
   );
 
   return (

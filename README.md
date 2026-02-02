@@ -158,6 +158,31 @@ The app prefers Groq when `GROQ_API_KEY` is set; then Claude; then Gemini.
 
 ---
 
+## Deploy
+
+**Vercel (recommended for Next.js)**
+
+1. Push the repo to GitHub (or GitLab/Bitbucket).
+2. Go to [vercel.com](https://vercel.com) and sign in with GitHub.
+3. Click **Add New → Project** and import this repo.
+4. Leave **Framework Preset** as Next.js and **Root Directory** as `.`; click **Deploy**.
+5. After the first deploy, go to **Settings → Environment Variables** and add one of:
+   - `GROQ_API_KEY` (free, recommended)
+   - `GOOGLE_GENERATIVE_AI_API_KEY` or `GEMINI_API_KEY`
+   - `ANTHROPIC_API_KEY`
+6. Redeploy (Deployments → ⋮ → Redeploy) so the app picks up the env var.
+
+**From your machine (optional)**
+
+- Install Vercel CLI: `npm i -g vercel`
+- In the project folder: `vercel` (follow prompts, then `vercel --prod` for production).
+
+**Netlify**
+
+- Connect the repo at [netlify.com](https://netlify.com). Use the detected Next.js build (`npm run build`). Add env vars in **Site settings → Environment variables**.
+
+---
+
 ## Live Demo
 
 **[Add your deployed URL here]** (e.g. `https://website-to-react-generator.vercel.app`)

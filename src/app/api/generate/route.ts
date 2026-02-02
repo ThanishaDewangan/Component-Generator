@@ -8,7 +8,8 @@ import {
 function extractCode(text: string): string {
   let out = text.trim();
   const fenceMatch = out.match(/```(?:tsx?|jsx?|javascript)?\s*([\s\S]*?)```/);
-  if (fenceMatch) out = fenceMatch[1].trim();
+  const inner = fenceMatch?.[1]?.trim();
+  if (inner) out = inner;
   return out;
 }
 

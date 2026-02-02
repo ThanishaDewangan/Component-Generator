@@ -4,9 +4,9 @@
 
 function getComponentName(code: string): string {
   const m = code.match(/function\s+(\w+)\s*\(/);
-  if (m) return m[1];
+  if (m?.[1]) return m[1];
   const m2 = code.match(/export\s+default\s+function\s+(\w+)/);
-  if (m2) return m[2];
+  if (m2?.[1]) return m2[1];
   return "Component";
 }
 

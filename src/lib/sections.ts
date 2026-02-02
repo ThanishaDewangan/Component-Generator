@@ -46,7 +46,8 @@ export function detectSections(html: string): Section[] {
     if (sections.length >= MAX_SECTIONS) return false; // break
 
     const $el = $(el);
-    const tagName = el.tagName?.toLowerCase() ?? "section";
+    const rawTag = (el as { tagName?: string; name?: string }).tagName ?? (el as { name?: string }).name;
+    const tagName = (rawTag ?? "section").toLowerCase();
     const outerHtml = $.html($el);
     if (outerHtml.length < MIN_SECTION_HTML_LENGTH) return;
 

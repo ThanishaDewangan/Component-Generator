@@ -1,9 +1,6 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import Prism from "prismjs";
-import "prismjs/components/prism-jsx";
-import "prismjs/themes/prism-tomorrow.css";
 
 interface CodePanelProps {
   code: string;
@@ -14,9 +11,9 @@ interface CodePanelProps {
 
 function getComponentName(code: string): string {
   const m = code.match(/function\s+(\w+)\s*\(/);
-  if (m) return m[1];
+  if (m?.[1]) return m[1];
   const m2 = code.match(/export\s+default\s+function\s+(\w+)/);
-  if (m2) return m2[1];
+  if (m2?.[1]) return m2[1];
   return "Component";
 }
 
@@ -27,9 +24,16 @@ export function CodePanel({ code, onCopy, onSave, defaultFileName }: CodePanelPr
   const [showSaveModal, setShowSaveModal] = useState(false);
 
   useEffect(() => {
-    if (codeRef.current && code) {
-      Prism.highlightElement(codeRef.current);
-    }
+    if (!codeRef.current || !code || typeof window === "undefined") return;
+    void (async () => {
+      const Prism = (await import("prismjs")).default;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment -- prism component has no types
+      // @ts-ignore - prismjs/components/prism-jsx has no declaration file
+      await import("prismjs/components/prism-jsx");
+      // @ts-ignore - CSS module has no type declarations
+      await import("prismjs/themes/prism-tomorrow.css");
+      Prism.highlightElement(codeRef.current!);
+    })();
   }, [code]);
 
   const handleCopy = async () => {
