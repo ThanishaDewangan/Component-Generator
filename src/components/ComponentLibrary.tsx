@@ -57,10 +57,20 @@ export function ComponentLibrary({ onLoad, onClose }: ComponentLibraryProps) {
       />
       <ul className="flex-1 overflow-auto space-y-2">
         {filtered.length === 0 && (
-          <li className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
-            {components.length === 0
-              ? "No saved components. Generate one and click Save."
-              : "No components match your search."}
+          <li className="text-sm text-gray-500 dark:text-gray-400 py-6 px-4 text-center rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-dashed border-gray-200 dark:border-gray-600">
+            {components.length === 0 ? (
+              <>
+                <p className="font-medium text-gray-700 dark:text-gray-300 mb-2">No saved components yet</p>
+                <p className="text-xs text-left max-w-sm mx-auto space-y-1">
+                  1. Paste a URL and click <strong>Scrape</strong><br />
+                  2. Select a section and click <strong>Generate component</strong><br />
+                  3. In the Code panel, click the green <strong>Save</strong> button<br />
+                  4. Your component will appear here. Click it to load it again, or use the search box to find it.
+                </p>
+              </>
+            ) : (
+              "No components match your search."
+            )}
           </li>
         )}
         {filtered.map((c) => (

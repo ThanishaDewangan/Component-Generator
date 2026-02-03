@@ -31,7 +31,8 @@ const PREVIEW_SCRIPT = `
       root.innerHTML = '';
       var normalized = code
         .replace(/<br\\s*>/gi, '<br />')
-        .replace(/<hr\\s*>/gi, '<hr />');
+        .replace(/<hr\\s*>/gi, '<hr />')
+        .replace(/^\\s*export\\s+default\\s+\\w+\\s*;\\s*$/gm, '');
       var transformed = Babel.transform(normalized, { presets: ['react'] }).code;
       transformed = transformed.replace(/^import\\s+.*?;?\\s*$/gm, '');
       transformed = transformed.replace(/export\\s+default\\s+/g, 'window.__previewComponent = ');

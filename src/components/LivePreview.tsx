@@ -9,9 +9,12 @@ interface LivePreviewProps {
   className?: string;
 }
 
+const MOBILE_WIDTH = 375;
+
 export function LivePreview({ code, className = "" }: LivePreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [viewport, setViewport] = useState<ViewportSize>("desktop");
+  const [iframeLoaded, setIframeLoaded] = useState(false);
 
   const sendCode = useCallback(() => {
     const iframe = iframeRef.current;
@@ -36,12 +39,13 @@ export function LivePreview({ code, className = "" }: LivePreviewProps) {
   }, [sendCode]);
 
   const handleIframeLoad = useCallback(() => {
+    setIframeLoaded(true);
     sendCode();
     setTimeout(sendCode, 200);
     setTimeout(sendCode, 600);
   }, [sendCode]);
 
-  const iframeWidth = viewport === "mobile" ? "375px" : "100%";
+  const showLoading = Boolean(code && !iframeLoaded);
 
   return (
     <div className={`flex flex-col h-full min-h-[200px] ${className}`}>
@@ -74,16 +78,26 @@ export function LivePreview({ code, className = "" }: LivePreviewProps) {
           </button>
         </div>
       </div>
-      <div className="flex-1 min-h-[300px] flex justify-center overflow-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 p-2">
-        <iframe
-          ref={iframeRef}
-          src="/preview"
-          title="Component preview"
-          style={{ width: iframeWidth, minWidth: viewport === "mobile" ? 375 : undefined }}
-          className="flex-1 min-h-[300px] rounded border-0 bg-white dark:bg-gray-900 shadow"
-          sandbox="allow-scripts"
-          onLoad={handleIframeLoad}
-        />
+      <div className="relative flex-1 min-h-[300px] flex justify-center overflow-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 p-2">
+        {showLoading && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 bg-gray-100/90 dark:bg-gray-800/90 rounded-lg">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Loading preview…</p>
+          </div>
+        )}
+        <div
+          className={viewport === "mobile" ? "shrink-0 flex flex-col" : "flex-1 min-w-0 w-full flex flex-col"}
+          style={viewport === "mobile" ? { width: MOBILE_WIDTH } : undefined}
+        >
+          <iframe
+            ref={iframeRef}
+            src="/preview"
+            title="Component preview"
+            className="flex-1 min-h-[300px] w-full rounded border-0 bg-white dark:bg-gray-900 shadow"
+            style={{ minWidth: viewport === "mobile" ? MOBILE_WIDTH : undefined }}
+            sandbox="allow-scripts"
+            onLoad={handleIframeLoad}
+          />
+        </div>
       </div>
     </div>
   );
