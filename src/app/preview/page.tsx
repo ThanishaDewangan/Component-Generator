@@ -38,6 +38,10 @@ const PREVIEW_SCRIPT = `
       transformed = transformed.replace(/export\\s+default\\s+/g, 'window.__previewComponent = ');
       var fnMatch = code.match(/function\\s+(\\w+)\\s*\\(/);
       (function(React, ReactDOM, tr, match) {
+        // Provide common aliases some generated code might reference.
+        // This prevents runtime ReferenceErrors like "react is not defined" or "typescript is not defined".
+        var react = React;
+        var typescript = {};
         eval(tr);
         if (!window.__previewComponent && match) {
           try { window.__previewComponent = eval(match[1]); } catch (e) {}
